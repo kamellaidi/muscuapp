@@ -3,19 +3,323 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary-color: #3b82f6;
+  --secondary-color: #1e40af;
+  --background-color: #f3f4f6;
+  --card-bg-color: #ffffff;
+  --text-color: #1f2937;
+  --border-color: #e5e7eb;
+  --error-color: #ef4444;
+  --success-color: #22c55e;
+  
+  /* Couleurs par catégorie */
+  --cardio-color: #FFCDD2; /* Rouge clair */
+  --guidee-color: #C8E6C9; /* Vert clair */
+  --libre-color: #BBDEFB; /* Bleu clair */
+  --fonctionnel-color: #E1BEE7; /* Violet clair */
+  
+  --font-sm: 14px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 20px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1.5;
+}
+
+.mobile-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
+  min-height: 100vh;
+  position: relative;
+}
+
+.app-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.app-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.app-header .subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.app-header .btn-small {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+h1 {
+  font-size: var(--font-xl);
+  font-weight: 600;
+}
+
+h2 {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+h3 {
+  font-size: var(--font-md);
+  font-weight: 600;
+}
+
+.btn-small {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: var(--font-sm);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-add {
+  display: block;
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: var(--font-md);
+  margin: 16px 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+.date-selector {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.date-selector label {
+  margin-right: 10px;
+  font-weight: 500;
+}
+
+.date-selector input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: var(--font-md);
+}
+
+.form-container {
+  background-color: var(--card-bg-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: var(--font-md);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.btn-cancel {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: var(--font-md);
+  cursor: pointer;
+  width: 48%;
+}
+
+.btn-submit {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: var(--font-md);
+  cursor: pointer;
+  width: 48%;
+}
+
+.workout-list,
+.machine-list {
+  margin-top: 20px;
+}
+
+.workout-card,
+.machine-card {
+  background-color: var(--card-bg-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* Couleurs par catégorie */
+.workout-card.cardio,
+.machine-card.cardio {
+  background-color: var(--cardio-color);
+}
+
+.workout-card.guidee,
+.machine-card.guidee {
+  background-color: var(--guidee-color);
+}
+
+.workout-card.libre,
+.machine-card.libre {
+  background-color: var(--libre-color);
+}
+
+.workout-card.fonctionnel,
+.machine-card.fonctionnel {
+  background-color: var(--fonctionnel-color);
+}
+
+.workout-info,
+.machine-info {
+  flex: 1;
+}
+
+.description {
+  font-size: var(--font-sm);
+  color: #4b5563;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.muscle-group {
+  display: inline-block;
+  background-color: rgba(0, 0, 0, 0.08);
+  color: #1e40af;
+  font-size: var(--font-sm);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.workout-stats {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: var(--font-md);
+}
+
+.workout-stats span {
+  margin-right: 16px;
+  margin-bottom: 4px;
+}
+
+.btn-delete {
+  background-color: transparent;
+  border: none;
+  color: var(--error-color);
+  font-size: 24px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.empty-message {
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+.category-tabs {
+  display: flex;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+}
+
+.category-tabs::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.category-tab {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  margin-right: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: var(--font-sm);
+  background: white;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.category-tab.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+@media (max-width: 640px) {
+  .form-container {
+    padding: 12px;
+  }
+  
+  .workout-card,
+  .machine-card {
+    padding: 12px;
+  }
 }
