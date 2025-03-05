@@ -1,13 +1,15 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mongodb"
+  url      = env("DATABASE_URL_MONGODB")
 }
+
 model Machine {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   nom         String
   description String
   groupe      String
@@ -18,12 +20,14 @@ model Machine {
 }
 
 model Workout {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   date        String
-  machineId   Int
+  machineId   String   @db.ObjectId
   machine     Machine  @relation(fields: [machineId], references: [id])
   repetitions Int
   poids       Float
+  notes       String?
+  userId      String?  @db.ObjectId
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

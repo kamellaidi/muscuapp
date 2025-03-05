@@ -8,7 +8,7 @@ import { Machine } from '@/types';
 export default function Machines() {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [activeGroup, setActiveGroup] = useState<string>('all');
   const [newMachine, setNewMachine] = useState<{
     nom: string;
     description: string;
@@ -21,31 +21,28 @@ export default function Machines() {
     categorie: 'guidee'
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const groupesMusculaires: string[] = [
-    'Jambes', 'Pectoraux', 'Dos', 'Épaules', 'Biceps', 
-    'Triceps', 'Abdominaux', 'Avant-bras', 'Multiple', 'Cardio', 'Récupération'
+    'Jambes', 'Quadriceps', 'Fessiers', 'Pectoraux', 'Dos', 'Épaules', 'Biceps', 
+    'Triceps', 'Abdominaux', 'Avant-bras', 'Corps complet', 'Cardio', 'Récupération'
   ];
 
-  const categories = [
-    { id: 'all', name: 'Toutes' },
-    { id: 'cardio', name: 'Cardiovasculaires' },
-    { id: 'guidee', name: 'Musculation guidée' },
-    { id: 'libre', name: 'Poids libres' },
-    { id: 'fonctionnel', name: 'Fonctionnels' }
-  ];
-
-  // Charger les machines au démarrage
+  // Charger les machines au démarrage depuis l'API Prisma
   useEffect(() => {
     const fetchMachines = async () => {
       setIsLoading(true);
+      setError(null);
       try {
         const res = await fetch('/api/machines');
-        if (!res.ok) throw new Error('Erreur lors du chargement des machines');
+        if (!res.ok) {
+          throw new Error(`Erreur ${res.status}: ${res.statusText}`);
+        }
         const data = await res.json();
         setMachines(data);
       } catch (error) {
         console.error('Erreur:', error);
+        setError(error instanceof Error ? error.message : 'Erreur de chargement des machines');
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +57,7 @@ export default function Machines() {
     setNewMachine(prev => ({ ...prev, [name]: value }));
   };
 
-  // Ajouter une machine
+  // Ajouter une machine via l'API
   const handleAddMachine = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -76,7 +73,9 @@ export default function Machines() {
         body: JSON.stringify(newMachine)
       });
       
-      if (!res.ok) throw new Error('Erreur lors de l\'ajout de la machine');
+      if (!res.ok) {
+        throw new Error(`Erreur ${res.status}: ${res.statusText}`);
+      }
       
       const newMachineData = await res.json();
       setMachines(prev => [...prev, newMachineData]);
@@ -95,8 +94,8 @@ export default function Machines() {
     }
   };
 
-  // Supprimer une machine
-  const handleDeleteMachine = async (id: number) => {
+  // Supprimer une machine via l'API
+  const handleDeleteMachine = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette machine ?')) {
       return;
     }
@@ -106,7 +105,9 @@ export default function Machines() {
         method: 'DELETE'
       });
       
-      if (!res.ok) throw new Error('Erreur lors de la suppression');
+      if (!res.ok) {
+        throw new Error(`Erreur ${res.status}: ${res.statusText}`);
+      }
       
       setMachines(prev => prev.filter(machine => machine.id !== id));
     } catch (error) {
@@ -115,29 +116,42 @@ export default function Machines() {
     }
   };
   
-  // Filtrer les machines par catégorie
-  const filteredMachines = activeCategory === 'all' 
+  // Filtrage des machines par groupe musculaire
+  const filteredMachines = activeGroup === 'all' 
     ? machines 
-    : machines.filter(machine => machine.categorie === activeCategory);
+    : machines.filter(machine => 
+        machine.groupe.includes(activeGroup) || 
+        machine.groupe === 'Corps complet' || 
+        machine.groupe === 'Tous les groupes'
+      );
 
   return (
     <div className="mobile-container">
       <header className="app-header">
-        <h1>MuscuApp</h1>
-        <p className="subtitle">Pour suivre mon activité à la salle</p>
-        <Link href="/" className="btn-small">Retour</Link>
+        <h1>Machines</h1>
+        <Link href="/" className="btn-small">Accueil</Link>
       </header>
       
-      <div className="category-tabs">
-        {categories.map(category => (
-          <button
-            key={category.id}
-            className={`category-tab ${activeCategory === category.id ? 'active' : ''}`}
-            onClick={() => setActiveCategory(category.id)}
-          >
-            {category.name}
-          </button>
-        ))}
+      <div className="filter-container">
+        <select 
+          className="group-filter"
+          value={activeGroup} 
+          onChange={(e) => setActiveGroup(e.target.value)}
+        >
+          <option value="all">🏋️ Tous les exercices</option>
+          <option value="Jambes">🦵 Jambes</option>
+          <option value="Quadriceps">🦵 Quadriceps</option>
+          <option value="Fessiers">🍑 Fessiers</option>
+          <option value="Pectoraux">💪 Pectoraux</option>
+          <option value="Dos">🔙 Dos</option>
+          <option value="Épaules">🙌 Épaules</option>
+          <option value="Biceps">💪 Biceps</option>
+          <option value="Triceps">💪 Triceps</option>
+          <option value="Abdominaux">🧍 Abdominaux</option>
+          <option value="Cardio">❤️ Cardio</option>
+          <option value="Corps complet">⭐ Corps complet</option>
+          <option value="Récupération">🧘 Récupération</option>
+        </select>
       </div>
       
       {!showForm ? (
@@ -221,15 +235,16 @@ export default function Machines() {
       
       <div className="machine-list">
         <h2>
-          {activeCategory === 'all' ? 'Toutes les machines' : 
-           activeCategory === 'cardio' ? 'Machines cardiovasculaires' :
-           activeCategory === 'guidee' ? 'Machines de musculation guidée' :
-           activeCategory === 'libre' ? 'Équipements poids libres' : 
-           'Équipements fonctionnels'}
+          {activeGroup === 'all' ? 'Toutes les machines' : `Machines pour ${activeGroup}`}
         </h2>
         
         {isLoading ? (
-          <p>Chargement...</p>
+          <p className="loading">Chargement...</p>
+        ) : error ? (
+          <div className="error-container">
+            <p className="error-message">{error}</p>
+            <button onClick={() => window.location.reload()} className="btn-retry">Réessayer</button>
+          </div>
         ) : filteredMachines.length === 0 ? (
           <p className="empty-message">Aucune machine dans cette catégorie</p>
         ) : (
@@ -238,11 +253,19 @@ export default function Machines() {
               <div className="machine-info">
                 <h3>{machine.nom}</h3>
                 {machine.description && <p className="description">{machine.description}</p>}
-                <span className="muscle-group">{machine.groupe}</span>
+                
+                <div className="muscle-groups">
+                  {machine.groupe.split(',').map((groupe, index) => (
+                    <span key={index} className="muscle-group">
+                      {groupe.trim()}
+                    </span>
+                  ))}
+                </div>
               </div>
               <button 
                 className="btn-delete"
                 onClick={() => handleDeleteMachine(machine.id)}
+                aria-label="Supprimer cette machine"
               >
                 ×
               </button>
