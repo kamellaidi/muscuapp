@@ -198,8 +198,8 @@ h3 {
 .machine-card {
   background-color: var(--card-bg-color);
   border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
@@ -232,82 +232,54 @@ h3 {
   flex: 1;
 }
 
+/* Description optimisée pour mobile */
 .description {
-  font-size: var(--font-sm);
-  color: #4b5563;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   margin-top: 2px;
   margin-bottom: 4px;
+}
+
+/* Badges de groupe musculaire optimisés pour mobile */
+.muscle-group {
+  display: inline-block;
+  background-color: rgba(0, 0, 0, 0.08);
+  color: #1e40af;
+  font-size: 11px;
+  padding: 1px 5px;
+  margin: 1px 2px;
+  border-radius: 3px;
+  white-space: nowrap;
 }
 
 .muscle-groups {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
+  gap: 2px;
+  margin-top: 4px;
+  max-height: 32px; /* Limiter à environ 2 lignes */
+  overflow: hidden;
 }
 
-/* Vous pouvez conserver votre style existant pour .muscle-group 
-   ou le modifier pour qu'il s'adapte mieux aux multiples badges */
-.muscle-group {
-  display: inline-block;
-  background-color: rgba(0, 0, 0, 0.08);
-  color: #1e40af;
-  font-size: var(--font-sm);
-  padding: 2px 8px;
-  border-radius: 4px;
+.more-groups {
+  font-size: 11px;
+  color: #666;
+  padding: 1px 5px;
+  background-color: #f0f0f0;
+  border-radius: 3px;
 }
 
-.nav-container {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.nav-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  text-decoration: none;
-  color: var(--text-color);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.nav-button:active {
-  transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-.nav-icon {
-  font-size: 28px;
-  margin-bottom: 8px;
-}
-
-.workout-stats {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 8px;
-  font-size: var(--font-md);
-}
-
-.workout-stats span {
-  margin-right: 16px;
-  margin-bottom: 4px;
-}
-
+/* Bouton de suppression plus petit et plus adapté au mobile */
 .btn-delete {
   background-color: transparent;
   border: none;
   color: var(--error-color);
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,6 +291,7 @@ h3 {
   font-style: italic;
   text-align: center;
   padding: 20px;
+  margin: 24px 0;
 }
 
 .category-tabs {
@@ -369,23 +342,6 @@ h3 {
   z-index: 1;
 }
 
-@media (min-width: 768px) {
-  .category-tabs::after {
-    display: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .form-container {
-    padding: 12px;
-  }
-  
-  .workout-card,
-  .machine-card {
-    padding: 12px;
-  }
-}
-
 .filter-container {
   margin-bottom: 16px;
 }
@@ -397,9 +353,12 @@ h3 {
   border: 1px solid var(--border-color);
   font-size: 16px;
   background-color: white;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
 }
-
-/* Ajoutez à votre fichier globals.css */
 
 .nav-container {
   display: grid;
@@ -431,6 +390,18 @@ h3 {
 .nav-icon {
   font-size: 32px;
   margin-bottom: 12px;
+}
+
+.workout-stats {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: var(--font-md);
+}
+
+.workout-stats span {
+  margin-right: 16px;
+  margin-bottom: 4px;
 }
 
 /* Styles pour l'historique */
@@ -595,10 +566,6 @@ h3 {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.exercise-details {
-  flex: 1;
-}
-
 .exercise-specs {
   display: flex;
   flex-wrap: wrap;
@@ -655,13 +622,6 @@ h3 {
   color: #666;
 }
 
-.empty-message {
-  text-align: center;
-  margin: 24px 0;
-  color: #666;
-  font-style: italic;
-}
-
 .error-container {
   text-align: center;
   margin: 40px 0;
@@ -683,21 +643,6 @@ h3 {
 /* Styles pour la page Séance */
 .group-filter-container {
   margin: 16px 0;
-}
-
-.group-filter {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background-color: white;
-  font-size: 16px;
-  color: var(--text-color);
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
 }
 
 .header-content {
@@ -762,13 +707,6 @@ h3 {
   margin-bottom: 4px;
 }
 
-.exercise-details {
-  display: flex;
-  gap: 12px;
-  font-size: 14px;
-  color: #666;
-}
-
 .status-done {
   color: #4caf50;
   font-weight: bold;
@@ -788,23 +726,7 @@ h3 {
   font-style: italic;
 }
 
-.muscle-groups {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 4px 0 8px;
-}
-
-.muscle-group {
-  display: inline-block;
-  background-color: rgba(0, 0, 0, 0.06);
-  color: #1e40af;
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-/* Couleurs par catégorie */
+/* Couleurs par catégorie pour workout */
 .workout-card.cardio {
   background-color: var(--cardio-color, #ffebee);
 }
@@ -819,4 +741,55 @@ h3 {
 
 .workout-card.fonctionnel {
   background-color: var(--fonctionnel-color, #f3e5f5);
+}
+
+/* Liste des machines optimisée pour mobile */
+.machines-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+/* Style pour le bouton Charger plus */
+.load-more-button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin: 20px 0;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f5f5f5;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.load-more-button:active {
+  background-color: #e9e9e9;
+  transform: scale(0.98);
+}
+
+/* Indicateurs de chargement */
+.loading-more {
+  text-align: center;
+  padding: 16px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Indicateur de fin de liste */
+.end-of-list {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin: 20px 0;
+  padding: 10px;
+}
+
+.count {
+  font-size: 14px;
+  color: #666;
+  margin-left: 8px;
 }

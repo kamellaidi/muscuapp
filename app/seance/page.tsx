@@ -208,24 +208,21 @@ export default function Seance(): React.ReactElement {
   };
   
   // Supprimer un entraînement
-  const handleDeleteWorkout = async (id: string): Promise<void> => {
-    try {
-      const res = await fetch(`/api/workouts/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (!res.ok) {
-        throw new Error(`Erreur ${res.status}: ${res.statusText}`);
-      }
-      
-      // Mettre à jour la liste des entraînements
-      setWorkouts(prev => prev.filter(workout => workout.id !== id));
-      
-    } catch (err) {
-      console.error('Erreur lors de la suppression de l\'entraînement:', err);
-      alert('Erreur lors de la suppression de l\'entraînement');
-    }
-  };
+// Supprimer un entraînement
+const handleDeleteWorkout = async (id: string) => { // changé de number à string
+  try {
+    const res = await fetch(`/api/workouts/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!res.ok) throw new Error('Erreur lors de la suppression');
+    
+    setWorkouts(prev => prev.filter(workout => workout.id !== id));
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur lors de la suppression de l\'entraînement');
+  }
+};
   
   // Ajouter un exercice depuis un plan
   const addExerciseFromPlan = (exercise: WorkoutPlan['exercises'][0]): void => {
