@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // types/index.ts
 export interface Machine {
   id: string;  // Changé de number à string
@@ -54,3 +55,26 @@ export interface Session {
   user: User;
   expires: string;
 }
+=======
+// types/index.ts
+export interface Machine {
+    id: number;
+    nom: string;
+    description: string;
+    groupe: string;
+    categorie: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+  }
+  
+  export interface Workout {
+    id: number;
+    date: string;
+    machineId: number;
+    machine: Machine; // Relation complète avec la machine
+    repetitions: number;
+    poids: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+  }
+>>>>>>> 882f3a69fa5cd6cc8df945407461870ed5510f3a
