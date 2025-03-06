@@ -1,4 +1,4 @@
-// app/planifier/[id]/page.tsx
+// app/plans/[id]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -6,25 +6,45 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { WorkoutPlan, Machine, PlanExercise } from '@/types';
 
-export default function EditPlan(): React.ReactElement {
+export default function EditPlanPage() {
   const params = useParams();
   const router = useRouter();
   const planId = params.id as string;
   
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [machines, setMachines] = useState<Machine[]>([]);
+  const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedMachine, setSelectedMachine] = useState<string>('');
+  const [activeGroup, setActiveGroup] = useState<string>('all');
+  
   const [exerciseDetails, setExerciseDetails] = useState<{
     repetitions?: number;
     series?: number;
     poids?: number;
     notes?: string;
-  }>({});
+  }>({
+    series: 3 // Valeur par défaut
+  });
+  
+  // Groupes musculaires avec emojis pour le filtrage
+  const muscleGroups = [
+    { id: 'all', name: '🏋️ Tous' },
+    { id: 'Jambes', name: '🦵 Jambes' },
+    { id: 'Quadriceps', name: '🦵 Quadriceps' },
+    { id: 'Pectoraux', name: '💪 Pectoraux' },
+    { id: 'Dos', name: '🔙 Dos' },
+    { id: 'Épaules', name: '🙌 Épaules' },
+    { id: 'Biceps', name: '💪 Biceps' },
+    { id: 'Triceps', name: '💪 Triceps' },
+    { id: 'Abdominaux', name: '🧍 Abdominaux' },
+    { id: 'Fessiers', name: '🍑 Fessiers' },
+    { id: 'Corps complet', name: '⭐ Corps complet' },
+  ];
   
   // Charger le plan et les machines
   useEffect(() => {
-    const loadData = async (): Promise<void> => {
+    const loadData = async () => {
       setIsLoading(true);
       
       try {
@@ -37,19 +57,20 @@ export default function EditPlan(): React.ReactElement {
           if (foundPlan) {
             setPlan(foundPlan);
           } else {
-            router.push('/planifier');
+            // Si le plan n'existe pas, rediriger vers la liste des plans
+            router.push('/plans');
             return;
           }
         } else {
-          router.push('/planifier');
+          router.push('/plans');
           return;
         }
         
         // Charger les machines depuis l'API
-        const res = await fetch('/api/machines');
+        const res = await fetch('/api/machines?limit=100');
         if (!res.ok) throw new Error('Erreur lors du chargement des machines');
-        const machinesData: Machine[] = await res.json();
-        setMachines(machinesData);
+        const data = await res.json();
+        setMachines(data.machines);
       } catch (err) {
         console.error('Erreur:', err);
       } finally {
@@ -60,8 +81,23 @@ export default function EditPlan(): React.ReactElement {
     loadData();
   }, [planId, router]);
   
+  // Filtrer les machines par groupe musculaire
+  useEffect(() => {
+    if (machines.length > 0) {
+      if (activeGroup !== 'all') {
+        const filtered = machines.filter(machine => 
+          machine.groupe.includes(activeGroup) || 
+          machine.groupe === 'Corps complet'
+        );
+        setFilteredMachines(filtered);
+      } else {
+        setFilteredMachines(machines);
+      }
+    }
+  }, [activeGroup, machines]);
+  
   // Sauvegarder les changements dans localStorage
-  const savePlan = (): void => {
+  const savePlan = () => {
     if (!plan) return;
     
     try {
@@ -84,7 +120,7 @@ export default function EditPlan(): React.ReactElement {
   }, [plan, isLoading]);
   
   // Ajouter un exercice au plan
-  const addExercise = (e: React.FormEvent): void => {
+  const addExercise = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedMachine || !plan) return;
@@ -108,11 +144,13 @@ export default function EditPlan(): React.ReactElement {
     
     // Réinitialiser le formulaire
     setSelectedMachine('');
-    setExerciseDetails({});
+    setExerciseDetails({
+      series: 3
+    });
   };
   
   // Supprimer un exercice du plan
-  const removeExercise = (exerciseId: string): void => {
+  const removeExercise = (exerciseId: string) => {
     if (!plan) return;
     
     setPlan({
@@ -122,7 +160,7 @@ export default function EditPlan(): React.ReactElement {
   };
   
   // Déplacer un exercice vers le haut ou le bas
-  const moveExercise = (exerciseId: string, direction: 'up' | 'down'): void => {
+  const moveExercise = (exerciseId: string, direction: 'up' | 'down') => {
     if (!plan) return;
     
     const exerciseIndex = plan.exercises.findIndex(ex => ex.id === exerciseId);
@@ -154,7 +192,7 @@ export default function EditPlan(): React.ReactElement {
     return (
       <div className="mobile-container">
         <p>Plan non trouvé</p>
-        <Link href="/planifier" className="btn-small">Retour</Link>
+        <Link href="/plans" className="btn-small">Retour</Link>
       </div>
     );
   }
@@ -163,7 +201,7 @@ export default function EditPlan(): React.ReactElement {
     <div className="mobile-container">
       <header className="app-header">
         <h1>Éditer le plan</h1>
-        <Link href="/planifier" className="btn-small">Retour</Link>
+        <Link href="/plans" className="btn-small">Retour</Link>
       </header>
       
       <div className="plan-edit-header">
@@ -173,7 +211,22 @@ export default function EditPlan(): React.ReactElement {
       
       <div className="add-exercise-form">
         <h3>Ajouter un exercice</h3>
+        
         <form onSubmit={addExercise}>
+          <div className="form-group">
+            <label htmlFor="muscle-group">Groupe musculaire:</label>
+            <select
+              id="muscle-group"
+              value={activeGroup}
+              onChange={(e) => setActiveGroup(e.target.value)}
+              className="form-select"
+            >
+              {muscleGroups.map(group => (
+                <option key={group.id} value={group.id}>{group.name}</option>
+              ))}
+            </select>
+          </div>
+          
           <div className="form-group">
             <label htmlFor="machine">Machine/Exercice:</label>
             <select
@@ -182,23 +235,14 @@ export default function EditPlan(): React.ReactElement {
               onChange={(e) => setSelectedMachine(e.target.value)}
               required
               className="form-select"
+              disabled={filteredMachines.length === 0}
             >
               <option value="">Sélectionner un exercice</option>
-              <optgroup label="Jambes">
-                {machines
-                  .filter(m => m.groupe.includes('Jambes') || m.groupe.includes('Quadriceps') || m.groupe.includes('Fessiers'))
-                  .map(m => (
-                    <option key={m.id} value={m.id}>{m.nom}</option>
-                  ))}
-              </optgroup>
-              <optgroup label="Pectoraux">
-                {machines
-                  .filter(m => m.groupe.includes('Pectoraux'))
-                  .map(m => (
-                    <option key={m.id} value={m.id}>{m.nom}</option>
-                  ))}
-              </optgroup>
-              {/* Autres groupes musculaires */}
+              {filteredMachines.map(machine => (
+                <option key={machine.id} value={machine.id}>
+                  {machine.nom} {machine.description ? `- ${machine.description}` : ''}
+                </option>
+              ))}
             </select>
           </div>
           
@@ -267,7 +311,7 @@ export default function EditPlan(): React.ReactElement {
         ) : (
           <div className="exercises-list">
             {plan.exercises.map((exercise, index) => (
-              <div key={exercise.id} className="exercise-item">
+              <div key={exercise.id} className={`exercise-item ${exercise.machineCategorie}`}>
                 <div className="exercise-details">
                   <h4>{exercise.machineName}</h4>
                   

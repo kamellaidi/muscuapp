@@ -1,4 +1,4 @@
-// app/page.tsx
+// app/page.tsx (mis à jour)
 import Link from 'next/link';
 import React from 'react';
 
@@ -21,9 +21,9 @@ export default function Home(): React.ReactElement {
           <span>HISTORIQUE</span>
         </Link>
         
-        <Link href="/planifier" className="nav-button">
+        <Link href="/plans" className="nav-button">
           <span className="nav-icon">📋</span>
-          <span>PLANIFIER</span>
+          <span>PLANS</span>
         </Link>
         
         <Link href="/machines" className="nav-button">

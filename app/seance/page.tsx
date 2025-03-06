@@ -287,16 +287,16 @@ export default function Seance(): React.ReactElement {
         </div>
         
         {plan && (
-          <div className="active-plan">
-            <span>Plan actif: {plan.name}</span>
-            <button 
-              onClick={() => setPlan(null)}
-              className="btn-small-outline"
-            >
-              Désactiver
-            </button>
-          </div>
-        )}
+  <div className="active-plan">
+    <span>Plan actif: <strong>{plan.name}</strong></span>
+    <button 
+      onClick={() => setPlan(null)}
+      className="btn-small-outline"
+    >
+      Désactiver
+    </button>
+  </div>
+)}
       </header>
       
       <div className="date-selector">
@@ -436,48 +436,44 @@ export default function Seance(): React.ReactElement {
       
       {/* Plan suggéré */}
       {plan && plan.exercises.length > 0 && (
-        <div className="plan-suggestions">
-          <h2>Exercices du plan "{plan.name}"</h2>
-          <div className="plan-exercises-list">
-            {plan.exercises.map(exercise => {
-              // Vérifier si cet exercice a déjà été fait aujourd'hui
-              const isDone = workouts.some(w => w.machineId === exercise.machineId);
+  <div className="plan-suggestions">
+    <h3>Exercices du plan</h3>
+    <div className="plan-exercises-list">
+      {plan.exercises.map(exercise => {
+        // Vérifier si cet exercice a déjà été fait aujourd'hui
+        const isDone = workouts.some(w => w.machineId === exercise.machineId);
+        
+        return (
+          <div 
+            key={exercise.id} 
+            className={`plan-exercise ${isDone ? 'done' : ''} ${exercise.machineCategorie}`}
+            onClick={() => !isDone && addExerciseFromPlan(exercise)}
+          >
+            <div className="exercise-info">
+              <h3>{exercise.machineName}</h3>
               
-              return (
-                <div 
-                  key={exercise.id} 
-                  className={`plan-exercise ${isDone ? 'done' : ''}`}
-                  onClick={() => !isDone && addExerciseFromPlan(exercise)}
-                >
-                  <div className="exercise-info">
-                    <h3>{exercise.machineName}</h3>
-                    
-                    <div className="exercise-details">
-                      {exercise.series && (
-                        <span>{exercise.series} série{exercise.series !== 1 ? 's' : ''}</span>
-                      )}
-                      
-                      {exercise.repetitions && (
-                        <span>{exercise.repetitions} rep{exercise.repetitions !== 1 ? 's' : ''}</span>
-                      )}
-                      
-                      {exercise.poids && (
-                        <span>{exercise.poids} kg</span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {isDone ? (
-                    <span className="status-done">✓</span>
-                  ) : (
-                    <span className="status-add">+</span>
-                  )}
-                </div>
-              );
-            })}
+              <div className="exercise-compact-details">
+                {exercise.series && exercise.repetitions && (
+                  <span>{exercise.series}×{exercise.repetitions}</span>
+                )}
+                
+                {exercise.poids && (
+                  <span>{exercise.poids}kg</span>
+                )}
+              </div>
+            </div>
+            
+            {isDone ? (
+              <span className="status-done">✓</span>
+            ) : (
+              <span className="status-add">+</span>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })}
+    </div>
+  </div>
+)}
       
       {/* Liste des entraînements du jour */}
       <div className="workout-list">
