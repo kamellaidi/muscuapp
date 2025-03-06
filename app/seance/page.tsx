@@ -19,6 +19,7 @@ export default function Seance(): React.ReactElement {
     dateParam || new Date().toISOString().split('T')[0]
   );
   const [machines, setMachines] = useState<Machine[]>([]);
+  const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [showForm, setShowForm] = useState<boolean>(false);
   const [activeGroup, setActiveGroup] = useState<string>('all');
@@ -27,11 +28,13 @@ export default function Seance(): React.ReactElement {
   // État du formulaire
   const [newWorkout, setNewWorkout] = useState<{
     machineId: string;
+    series: string;
     repetitions: string;
     poids: string;
     notes?: string;
   }>({
     machineId: '',
+    series: '3',
     repetitions: '',
     poids: '',
     notes: ''
@@ -64,14 +67,14 @@ export default function Seance(): React.ReactElement {
     const fetchMachines = async (): Promise<void> => {
       setMachinesLoading(true);
       try {
-        const res = await fetch('/api/machines');
+        const res = await fetch('/api/machines?limit=100');
         
         if (!res.ok) {
           throw new Error(`Erreur ${res.status}: ${res.statusText}`);
         }
         
-        const data: Machine[] = await res.json();
-        setMachines(data);
+        const data = await res.json();
+        setMachines(data.machines);
       } catch (err) {
         console.error('Erreur lors du chargement des machines:', err);
         setError(err instanceof Error ? err.message : 'Erreur lors du chargement des machines');
@@ -82,6 +85,21 @@ export default function Seance(): React.ReactElement {
     
     fetchMachines();
   }, []);
+  
+  // Filtrer les machines par groupe musculaire
+  useEffect(() => {
+    if (machines.length > 0) {
+      if (activeGroup !== 'all') {
+        const filtered = machines.filter(machine => 
+          machine.groupe.includes(activeGroup) || 
+          machine.groupe === 'Corps complet'
+        );
+        setFilteredMachines(filtered);
+      } else {
+        setFilteredMachines(machines);
+      }
+    }
+  }, [activeGroup, machines]);
   
   // Charger les entraînements pour la date sélectionnée
   useEffect(() => {
@@ -94,7 +112,7 @@ export default function Seance(): React.ReactElement {
           throw new Error(`Erreur ${res.status}: ${res.statusText}`);
         }
         
-        const data: Workout[] = await res.json();
+        const data = await res.json();
         setWorkouts(data);
       } catch (err) {
         console.error('Erreur lors du chargement des entraînements:', err);
@@ -152,18 +170,19 @@ export default function Seance(): React.ReactElement {
     setNewWorkout(prev => ({ ...prev, [name]: value }));
   };
   
-  // Filtrer les machines par groupe musculaire
-  const filteredMachines = activeGroup === 'all'
-    ? machines
-    : machines.filter(machine => 
-        machine.groupe.includes(activeGroup) || 
-        machine.groupe === 'Corps complet');
-  
   // Ajouter un entraînement
   const handleAddWorkout = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     
-    if (!newWorkout.machineId || !newWorkout.repetitions || !newWorkout.poids) {
+    console.log("Form submission - Form values:", newWorkout);
+    
+    if (!newWorkout.machineId || !newWorkout.series || !newWorkout.repetitions || !newWorkout.poids) {
+      console.log("Missing fields:", {
+        machineId: !newWorkout.machineId,
+        series: !newWorkout.series,
+        repetitions: !newWorkout.repetitions,
+        poids: !newWorkout.poids
+      });
       alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
@@ -171,23 +190,39 @@ export default function Seance(): React.ReactElement {
     try {
       const workoutData = {
         date: selectedDate,
-        machineId: newWorkout.machineId,
+        machineId: String(newWorkout.machineId),
+        series: parseInt(newWorkout.series),
         repetitions: parseInt(newWorkout.repetitions),
         poids: parseFloat(newWorkout.poids),
         notes: newWorkout.notes
       };
       
+      console.log("Prepared workout data:", workoutData);
+      
+      console.log("Sending API request to:", '/api/workouts');
       const res = await fetch('/api/workouts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(workoutData)
       });
       
+      console.log("API response status:", res.status, res.statusText);
+      
       if (!res.ok) {
         throw new Error(`Erreur ${res.status}: ${res.statusText}`);
       }
       
-      const savedWorkout: Workout = await res.json();
+      const responseText = await res.text();
+      console.log("API response text:", responseText);
+      
+      let savedWorkout;
+      try {
+        savedWorkout = JSON.parse(responseText) as Workout;
+        console.log("Parsed workout data:", savedWorkout);
+      } catch (parseError) {
+        console.error("Error parsing JSON response:", parseError);
+        throw new Error("Réponse invalide du serveur");
+      }
       
       // Mettre à jour la liste des entraînements
       setWorkouts(prev => [savedWorkout, ...prev]);
@@ -195,6 +230,7 @@ export default function Seance(): React.ReactElement {
       // Réinitialiser le formulaire
       setNewWorkout({
         machineId: '',
+        series: '3',
         repetitions: '',
         poids: '',
         notes: ''
@@ -202,27 +238,30 @@ export default function Seance(): React.ReactElement {
       setShowForm(false);
       
     } catch (err) {
-      console.error('Erreur lors de l\'ajout de l\'entraînement:', err);
+      console.error("Error details:", err);
       alert('Erreur lors de l\'ajout de l\'entraînement');
     }
   };
   
   // Supprimer un entraînement
-// Supprimer un entraînement
-const handleDeleteWorkout = async (id: string) => { // changé de number à string
-  try {
-    const res = await fetch(`/api/workouts/${id}`, {
-      method: 'DELETE'
-    });
+  const handleDeleteWorkout = async (id: string): Promise<void> => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet exercice ?')) {
+      return;
+    }
     
-    if (!res.ok) throw new Error('Erreur lors de la suppression');
-    
-    setWorkouts(prev => prev.filter(workout => workout.id !== id));
-  } catch (error) {
-    console.error('Erreur:', error);
-    alert('Erreur lors de la suppression de l\'entraînement');
-  }
-};
+    try {
+      const res = await fetch(`/api/workouts/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!res.ok) throw new Error('Erreur lors de la suppression');
+      
+      setWorkouts(prev => prev.filter(workout => workout.id !== id));
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de la suppression de l\'entraînement');
+    }
+  };
   
   // Ajouter un exercice depuis un plan
   const addExerciseFromPlan = (exercise: WorkoutPlan['exercises'][0]): void => {
@@ -230,6 +269,7 @@ const handleDeleteWorkout = async (id: string) => { // changé de number à stri
     
     setNewWorkout({
       machineId: exercise.machineId,
+      series: exercise.series?.toString() || '3',
       repetitions: exercise.repetitions?.toString() || '',
       poids: exercise.poids?.toString() || '',
       notes: exercise.notes || ''
@@ -266,22 +306,8 @@ const handleDeleteWorkout = async (id: string) => { // changé de number à stri
           id="date"
           value={selectedDate}
           onChange={handleDateChange}
+          className="date-input"
         />
-      </div>
-      
-      {/* Sélecteur de groupe musculaire */}
-      <div className="group-filter-container">
-        <select 
-          className="group-filter"
-          value={activeGroup} 
-          onChange={(e) => setActiveGroup(e.target.value)}
-        >
-          {muscleGroups.map(group => (
-            <option key={group.id} value={group.id}>
-              {group.name}
-            </option>
-          ))}
-        </select>
       </div>
       
       {!showForm ? (
@@ -295,6 +321,25 @@ const handleDeleteWorkout = async (id: string) => { // changé de number à stri
         <div className="form-container">
           <h2>Nouvel exercice</h2>
           <form onSubmit={handleAddWorkout}>
+            {/* Premier select: Groupe musculaire */}
+            <div className="form-group">
+              <label htmlFor="muscleGroup">Groupe musculaire:</label>
+              <select
+                id="muscleGroup"
+                value={activeGroup}
+                onChange={(e) => setActiveGroup(e.target.value)}
+                className="form-select"
+                required
+              >
+                {muscleGroups.map(group => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            {/* Deuxième select: Exercice filtré par le groupe musculaire */}
             <div className="form-group">
               <label htmlFor="machine">Machine/Exercice:</label>
               <select
@@ -303,109 +348,65 @@ const handleDeleteWorkout = async (id: string) => { // changé de number à stri
                 value={newWorkout.machineId}
                 onChange={handleInputChange}
                 required
+                className="form-select"
+                disabled={filteredMachines.length === 0 || activeGroup === 'all'}
               >
                 <option value="">Sélectionner un exercice</option>
-                {filteredMachines.length > 0 && (
-                  <>
-                    <optgroup label="Quadriceps / Jambes">
-                      {filteredMachines
-                        .filter(m => m.groupe.includes('Quadriceps') || m.groupe.includes('Jambes'))
-                        .map(machine => (
-                          <option key={machine.id} value={machine.id}>
-                            {machine.nom} - {machine.description}
-                          </option>
-                        ))}
-                    </optgroup>
-                    
-                    <optgroup label="Pectoraux">
-                      {filteredMachines
-                        .filter(m => m.groupe.includes('Pectoraux'))
-                        .map(machine => (
-                          <option key={machine.id} value={machine.id}>
-                            {machine.nom} - {machine.description}
-                          </option>
-                        ))}
-                    </optgroup>
-                    
-                    <optgroup label="Dos">
-                      {filteredMachines
-                        .filter(m => m.groupe.includes('Dos'))
-                        .map(machine => (
-                          <option key={machine.id} value={machine.id}>
-                            {machine.nom} - {machine.description}
-                          </option>
-                        ))}
-                    </optgroup>
-                    
-                    <optgroup label="Épaules">
-                      {filteredMachines
-                        .filter(m => m.groupe.includes('Épaules'))
-                        .map(machine => (
-                          <option key={machine.id} value={machine.id}>
-                            {machine.nom} - {machine.description}
-                          </option>
-                        ))}
-                    </optgroup>
-                    
-                    <optgroup label="Bras (Biceps/Triceps)">
-                      {filteredMachines
-                        .filter(m => m.groupe.includes('Biceps') || m.groupe.includes('Triceps'))
-                        .map(machine => (
-                          <option key={machine.id} value={machine.id}>
-                            {machine.nom} - {machine.description}
-                          </option>
-                        ))}
-                    </optgroup>
-                    
-                    <optgroup label="Abdominaux">
-                      {filteredMachines
-                        .filter(m => m.groupe.includes('Abdominaux'))
-                        .map(machine => (
-                          <option key={machine.id} value={machine.id}>
-                            {machine.nom} - {machine.description}
-                          </option>
-                        ))}
-                    </optgroup>
-                    
-                    <optgroup label="Cardio">
-                      {filteredMachines
-                        .filter(m => m.groupe.includes('Cardio'))
-                        .map(machine => (
-                          <option key={machine.id} value={machine.id}>
-                            {machine.nom} - {machine.description}
-                          </option>
-                        ))}
-                    </optgroup>
-                  </>
-                )}
+                {filteredMachines.map(machine => (
+                  <option key={machine.id} value={machine.id}>
+                    {machine.nom} {machine.description ? `- ${machine.description}` : ''}
+                  </option>
+                ))}
               </select>
             </div>
             
-            <div className="form-group">
-              <label htmlFor="repetitions">Répétitions:</label>
-              <input
-                type="number"
-                id="repetitions"
-                name="repetitions"
-                value={newWorkout.repetitions}
-                onChange={handleInputChange}
-                min="1"
-                required
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="poids">Poids (kg):</label>
-              <input
-                type="number"
-                id="poids"
-                name="poids"
-                value={newWorkout.poids}
-                onChange={handleInputChange}
-                min="0"
-                step="0.5"
-                required
-              />
+            {/* Champs numériques en ligne */}
+            <div className="form-row">
+              <div className="form-group third">
+                <label htmlFor="series">Séries:</label>
+                <input
+                  type="number"
+                  id="series"
+                  name="series"
+                  value={newWorkout.series}
+                  onChange={handleInputChange}
+                  min="1"
+                  required
+                  className="form-input"
+                  inputMode="numeric"
+                />
+              </div>
+              
+              <div className="form-group third">
+                <label htmlFor="repetitions">Répétitions:</label>
+                <input
+                  type="number"
+                  id="repetitions"
+                  name="repetitions"
+                  value={newWorkout.repetitions}
+                  onChange={handleInputChange}
+                  min="1"
+                  required
+                  className="form-input"
+                  inputMode="numeric"
+                />
+              </div>
+              
+              <div className="form-group third">
+                <label htmlFor="poids">Poids (kg):</label>
+                <input
+                  type="number"
+                  id="poids"
+                  name="poids"
+                  value={newWorkout.poids}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.5"
+                  required
+                  className="form-input"
+                  inputMode="decimal"
+                />
+              </div>
             </div>
             
             <div className="form-group">
@@ -417,6 +418,7 @@ const handleDeleteWorkout = async (id: string) => { // changé de number à stri
                 onChange={handleInputChange}
                 placeholder="Instructions, sensations, etc."
                 rows={2}
+                className="form-textarea"
               />
             </div>
             
@@ -499,22 +501,35 @@ const handleDeleteWorkout = async (id: string) => { // changé de number à stri
               <div className="workout-info">
                 <h3>{workout.machine.nom}</h3>
                 
-                {/* Afficher les groupes musculaires */}
+                {/* Afficher les groupes musculaires avec limite */}
                 <div className="muscle-groups">
-                  {workout.machine.groupe.split(',').map((groupe, index) => (
-                    <span key={index} className="muscle-group">
-                      {groupe.trim()}
-                    </span>
-                  ))}
+                  {(() => {
+                    const groupes = workout.machine.groupe.split(',');
+                    const maxVisibleGroups = 2;
+                    
+                    return (
+                      <>
+                        {groupes.slice(0, maxVisibleGroups).map((groupe, index) => (
+                          <span key={index} className="muscle-group">
+                            {groupe.trim()}
+                          </span>
+                        ))}
+                        {groupes.length > maxVisibleGroups && (
+                          <span className="more-groups">+{groupes.length - maxVisibleGroups}</span>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
                 
                 <div className="workout-stats">
+                  {workout.series && <span>{workout.series} série{workout.series !== 1 ? 's' : ''}</span>}
                   <span>{workout.repetitions} répétitions</span>
                   <span>{workout.poids} kg</span>
                 </div>
                 
                 {workout.notes && (
-                  <p className="workout-notes">{workout.notes}</p>
+                  <p className="workout-notes text-truncate">{workout.notes}</p>
                 )}
               </div>
               

@@ -10,11 +10,12 @@ export interface Machine {
 }
 
 export interface Workout {
-  id: string;  // Changé de number à string
+  id: string;
   date: string;
-  machineId: string;  // Changé de number à string
+  machineId: string;
   machine: Machine;
   repetitions: number;
+  series: number;    // Nouveau champ
   poids: number;
   notes?: string;
   userId?: string;

@@ -36,6 +36,9 @@ export async function POST(request: Request) {
     const workoutData = {
       ...data,
       machineId: data.machineId.toString(), // Assurer que machineId est une chaîne
+      series: parseInt(data.series || '3'), // Gérer le nouveau champ series
+      repetitions: parseInt(data.repetitions),
+      poids: parseFloat(data.poids),
     };
     
     const workout = await prisma.workout.create({

@@ -20,14 +20,14 @@ model Machine {
 }
 
 model Workout {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   date        String
-  machineId   String   @db.ObjectId
-  machine     Machine  @relation(fields: [machineId], references: [id])
+  machineId   String    @db.ObjectId
+  machine     Machine   @relation(fields: [machineId], references: [id])
   repetitions Int
+  series      Int       @default(3)  // Nouveau champ avec valeur par défaut
   poids       Float
   notes       String?
-  userId      String?  @db.ObjectId
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
