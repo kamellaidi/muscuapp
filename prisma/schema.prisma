@@ -8,6 +8,7 @@ datasource db {
   url      = env("DATABASE_URL_MONGODB")
 }
 
+// Modèles existants
 model Machine {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   nom         String
@@ -20,14 +21,83 @@ model Machine {
 }
 
 model Workout {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   date        String
-  machineId   String    @db.ObjectId
-  machine     Machine   @relation(fields: [machineId], references: [id])
+  machineId   String   @db.ObjectId
+  machine     Machine  @relation(fields: [machineId], references: [id])
   repetitions Int
-  series      Int       @default(3)  // Nouveau champ avec valeur par défaut
+  series      Int      @default(3)
   poids       Float
   notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  // Ajout de la relation avec l'utilisateur
+  userId      String?  @db.ObjectId
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Nouveaux modèles pour l'authentification
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  firstName     String?
+  lastName      String?
+  email         String?       @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  workouts      Workout[]
+  workoutPlans  WorkoutPlan[] // Ajoutez cette ligne pour définir la relation inverse
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Modèle pour stocker les plans d'entraînement
+model WorkoutPlan {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  exercises   Json
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

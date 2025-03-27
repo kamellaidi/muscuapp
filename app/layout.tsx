@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import AuthProvider from './context/AuthProvider';
 
 export const metadata: Metadata = {
   title: 'Fitness Tracker',
@@ -16,7 +17,11 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }
