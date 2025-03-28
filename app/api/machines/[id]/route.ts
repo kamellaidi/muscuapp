@@ -2,14 +2,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// Type pour le contexte de route avec un ID MongoDB
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
-    // Pas besoin de parseInt avec MongoDB
-    const { id } = params;
+    // Extraction de l'ID MongoDB
+    const { id } = context.params;
     
+    // Suppression via Prisma
     await prisma.machine.delete({
       where: { id }
     });

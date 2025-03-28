@@ -1,4 +1,5 @@
-import { NextResponse, NextRequest } from 'next/server';
+// app/api/machines/route.ts
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
@@ -11,9 +12,9 @@ export async function GET(request: NextRequest) {
     // Calcul de l'offset pour la pagination
     const skip = (page - 1) * limit;
     
-    // Construction de la requête avec filtrage optionnel
+    // Construction de la requête avec filtrage optionnel pour MongoDB
     const whereClause = group && group !== 'all' 
-      ? { groupe: { contains: group } }  // Recherche partielle pour MongoDB
+      ? { groupe: { contains: group } }
       : undefined;
     
     // Requête paginée
@@ -43,3 +44,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
+
+// Si vous avez une méthode POST, n'oubliez pas de la mettre à jour aussi
+/* export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json();
+    const machine = await prisma.machine.create({
+      data
+    });
+    
+    return NextResponse.json(machine);
+  } catch (error) {
+    console.error('Erreur:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
+} */
